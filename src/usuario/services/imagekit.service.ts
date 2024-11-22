@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
-import * as sharp from 'sharp';
+import { createCanvas, loadImage } from 'canvas';
 
 @Injectable()
 export class ImageKitService {
@@ -156,12 +156,43 @@ export class ImageKitService {
   }
 
   private async processImage(buffer: Buffer): Promise<Buffer> {
-    return await sharp(buffer)
-      .resize(800, 800, { fit: sharp.fit.inside, withoutEnlargement: true })
-      .toFormat('jpeg')
-      .jpeg({ quality: 80 })
-      .toBuffer();
-  }
+    try {
+      const image = await loadImage(buffer);
+      
+      // Calculate new dimensions while maintaining aspect ratio
+      let width = image.width;
+      let height = image.height;
+      const maxDimension = 800;
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = createCanvas(width, height);
+      const ctx = canvas.getContext('2d');
+      
+      // Use only imageSmoothingEnabled
+      ctx.imageSmoothingEnabled = true;
+      
+      // Draw image with resize
+      ctx.drawImage(image, 0, 0, width, height);
+      
+      // Convert to buffer with JPEG encoding
+      return canvas.toBuffer('image/jpeg', {
+        quality: 0.8,
+        progressive: true
+      });
+    } catch (error) {
+      console.error('Error processing image:', error);
+      throw new HttpException('Erro ao processar a imagem', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
 
   private async downloadImage(url: string): Promise<Buffer> {
     try {
@@ -180,3 +211,11 @@ export class ImageKitService {
     };
   }
 }
+
+/**
+ * Instalar:
+ * 
+ * npm install --save @types/multer
+ * npm install canvas
+ * npm install @nestjs/axios
+ */
