@@ -1,41 +1,37 @@
-﻿import { IsEmail, IsNotEmpty, MinLength } from "class-validator"
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm"
-import { Postagem } from "../../postagem/entities/postagem.entity"
-import { Transform, TransformFnParams } from "class-transformer"
-import { ApiProperty } from "@nestjs/swagger"
+﻿import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Postagem } from '../../postagem/entities/postagem.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
-@Entity({name: "tb_usuarios"})
+@Entity({ name: 'tb_usuarios' })
 export class Usuario {
+    
+  @ApiProperty()
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @PrimaryGeneratedColumn() 
-    @ApiProperty() 
-    id: number
+  @ApiProperty()
+  @IsNotEmpty()
+  @Column({ length: 255, nullable: false })
+  nome: string;
 
-    @Transform(({ value }: TransformFnParams) => value?.trim())
-    @IsNotEmpty()
-    @Column({length: 255, nullable: false}) 
-    @ApiProperty() 
-    nome: string
+  @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  @Column({ length: 255, nullable: false })
+  usuario: string;
 
-    @IsEmail()
-    @IsNotEmpty()
-    @Column({length: 255, nullable: false })
-    @ApiProperty({example: "email@email.com.br"}) 
-    usuario: string
+  @ApiProperty()
+  @MinLength(8)
+  @IsNotEmpty()
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  senha: string;
 
-    @Transform(({ value }: TransformFnParams) => value?.trim())
-    @MinLength(8)
-    @IsNotEmpty()
-    @Column({length: 255, nullable: false }) 
-    @ApiProperty() 
-    senha: string
+  @ApiProperty()
+  @Column({ type: 'varchar', length: 5000, nullable: true })
+  foto?: string;
 
-    @Column({length: 5000 }) 
-    @ApiProperty() 
-    foto: string
-
-    @OneToMany(() => Postagem, (postagem) => postagem.usuario)
-    @ApiProperty() 
-    postagem: Postagem[]
-
+  @OneToMany(() => Postagem, (postagem) => postagem.usuario)
+  @ApiProperty()
+  postagem: Postagem[];
 }

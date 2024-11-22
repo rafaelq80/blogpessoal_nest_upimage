@@ -108,6 +108,7 @@ export class ImageKitService {
   }
 
   private async postImage(form: FormData): Promise<string> {
+
     try {
       const response = await lastValueFrom(
         this.httpService.post(this.imageKitUrl, form, {
